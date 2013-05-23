@@ -1,10 +1,14 @@
-/*
- * grunt-contrib-qunit
- * http://gruntjs.com/
- *
- * Copyright (c) 2012 "Cowboy" Ben Alman, contributors
- * Licensed under the MIT license.
- */
+// grunt-blanket-qunit
+//
+// Copyright (C) 2013 Model N, Inc.
+// Distributed under the MIT License
+//
+// Documentation and full license available at:
+// https://github.com/ModelN/grunt-blanket-qunit
+//
+// Based on grunt-blanket-qunit
+// https://github.com/ModelN/grunt-blanket-qunit
+// Copyright (c) 2012 "Cowboy" Ben Alman, contributors
 
 'use strict';
 
@@ -115,7 +119,6 @@ module.exports = function(grunt) {
             grunt.log.writeln();
         }
 
-//        var threshold = coverageThreshold; //threshold || 50;
         var coveredLines = thisTotal[0];
         var totalLines = thisTotal[1];
 
@@ -130,17 +133,13 @@ module.exports = function(grunt) {
 
         if (pass) {
             status.blanketPass++;
-//            grunt.log.ok(msg);
+            if (grunt.option('verbose')) {
+                grunt.log.writeln(msg.green);
+            }
         } else {
             status.blanketFail++;
-            grunt.log.write(msg.red);
-            grunt.log.writeln();
+            grunt.log.writeln(msg.red);
         }
-    });
-
-    phantomjs.on('blanket:done', function(cov) {
-
-
     });
 
     phantomjs.on('qunit.done', function(failed, passed, total, duration) {
@@ -154,9 +153,7 @@ module.exports = function(grunt) {
             if (failed > 0) {
                 grunt.log.writeln();
                 logFailedAssertions();
-            } else {
-//                grunt.log.ok();
-            }
+            } 
         }
     });
 
