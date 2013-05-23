@@ -1,0 +1,43 @@
+{
+  "name": "grunt-blanket-qunit",
+  "description": "Headless Blanket.js code coverage and QUnit testing via PhantomJS",
+  "version": "0.1.0",
+  "homepage": "https://github.com/ModelN/grunt-blanket-qunit",
+  "author": {
+    "name": "Dave Cadwallader",
+    "email": "dcadwallader@gmail.com",
+    "url": "http://geekdave.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/ModelN/grunt-blanket-qunit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ModelN/grunt-blanket-qunit/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/ModelN/grunt-blanket-qunit/blob/master/LICENSE-MIT"
+    }
+  ],
+  "main": "Gruntfile.js",
+  "engines": {
+    "node": ">= 0.8.0"
+  },
+  "scripts": {
+    "test": "grunt test"
+  },
+  "devDependencies": {
+    "grunt-contrib-jshint": "~0.1.1",
+    "grunt-contrib-clean": "~0.4.0",
+    "grunt-contrib-qunit": "~0.2.1",
+    "grunt": "~0.4.1"
+  },
+  "peerDependencies": {
+    "grunt": "~0.4.1"
+  },
+  "keywords": [
+    "gruntplugin"
+  ]
+}
