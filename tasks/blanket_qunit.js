@@ -131,6 +131,7 @@ module.exports = function(grunt) {
 
         var msg = result + " [" + percentDisplay + "%] : " + filename + " (" + coveredLines + " / " + totalLines + ")";
 
+        status.blanketTotal++;
         if (pass) {
             status.blanketPass++;
             if (grunt.option('verbose')) {
@@ -153,7 +154,7 @@ module.exports = function(grunt) {
             if (failed > 0) {
                 grunt.log.writeln();
                 logFailedAssertions();
-            } 
+            }
         }
     });
 
@@ -199,7 +200,7 @@ module.exports = function(grunt) {
         var done = this.async();
 
         // Reset status.
-        status = {failed: 0, passed: 0, total: 0, duration: 0, blanketPass: 0, blanketFail: 0};
+        status = {failed: 0, passed: 0, total: 0, duration: 0, blanketTotal: 0, blanketPass: 0, blanketFail: 0};
 
         coverageThreshold = options.threshold;
 
@@ -236,10 +237,9 @@ module.exports = function(grunt) {
                     grunt.log.write("Code Coverage Results: ");
 
                     var thresholdMsg = "(" + coverageThreshold + "% minimum)";
-                    
+
                     if (status.blanketFail > 0) {
-//                    grunt.log.write(status.blanketPass + " files passed coverage\n");
-                        var failMsg = (status.blanketFail + " files failed coverage " + thresholdMsg);
+                        var failMsg = (status.blanketFail + "/" + status.blanketTotal + " files failed coverage " + thresholdMsg);
                         grunt.log.write(failMsg.red);
                         grunt.log.writeln();
                         ok = false;

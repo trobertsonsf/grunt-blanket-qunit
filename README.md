@@ -17,6 +17,10 @@ Once the plugin has been installed, it may be enabled inside your Gruntfile with
 grunt.loadNpmTasks('grunt-blanket-qunit');
 ```
 
+## Blanket.js dependency
+
+This plugin requires Blanket.js v1.1.5 which is currently still in development.  Check the blanket.js version in the [dev branch](https://github.com/alex-seville/blanket/blob/development/dist/qunit/blanket.js) in the meantime.  
+
 ## The "blanket_qunit" task
 
 ### See Also
@@ -80,6 +84,11 @@ The minimum percent coverage per-file.  Any files that have coverage below this 
 In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using [Grunt](http://gruntjs.com/).
 
 ## Release History
+
+### 0.1.4
+*Released 23 May 2013*
+
+* Doc updates & misc fixes
 
 ### 0.1.0
 *Released 23 May 2013*
