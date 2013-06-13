@@ -1,13 +1,13 @@
 // grunt-blanket-qunit
 //
-// Copyright (C) 2013 Model N, Inc.
+// Copyright (C) 2013 Dave Cadwallader, Model N, Inc.
 // Distributed under the MIT License
 //
 // Documentation and full license available at:
 // https://github.com/ModelN/grunt-blanket-qunit
 //
-// Based on grunt-blanket-qunit
-// https://github.com/ModelN/grunt-blanket-qunit
+// Based on grunt-contrib-qunit
+// https://github.com/gruntjs/grunt-contrib-qunit
 // Copyright (c) 2012 "Cowboy" Ben Alman, contributors
 
 'use strict';
@@ -202,7 +202,7 @@ module.exports = function(grunt) {
         // Reset status.
         status = {failed: 0, passed: 0, total: 0, duration: 0, blanketTotal: 0, blanketPass: 0, blanketFail: 0};
 
-        coverageThreshold = options.threshold;
+        coverageThreshold = grunt.option('threshold') || options.threshold;
 
         // Process each filepath in-order.
         grunt.util.async.forEachSeries(urls, function(url, next) {

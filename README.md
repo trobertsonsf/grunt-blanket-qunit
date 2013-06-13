@@ -79,11 +79,25 @@ Default value: `60`
 
 The minimum percent coverage per-file.  Any files that have coverage below this threshold will fail the build.  By default, only the failing files will be output in the console.  To show passing files as well, use the grunt `--verbose` option.
 
+### Command Line Options
+
+#### threshold
+
+Override the threshold specified in the Gruntfile.  
+
+For example, if you wanted to test your files using a 90% threshold, and the Gruntfile had a different threshold specified, you could override it like so:
+
+`grunt --threshold=90`
 
 ## Contributing
 In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using [Grunt](http://gruntjs.com/).
 
 ## Release History
+
+### 0.1.5
+*Released 13 June 2013*
+
+* Added command line override for coverage threshold
 
 ### 0.1.4
 *Released 23 May 2013*
