@@ -94,6 +94,12 @@ In lieu of a formal styleguide, take care to maintain the existing coding style.
 
 ## Release History
 
+### 0.1.6
+*Released 13 June 2013*
+
+* Fixed [Issue #1](https://github.com/ModelN/grunt-blanket-qunit/issues/1): Sort file paths alphabetically.
+* Added extra spacing in coverage percentage output to keep filenames aligned for easier readability. 
+
 ### 0.1.5
 *Released 13 June 2013*
 

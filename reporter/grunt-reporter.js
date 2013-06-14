@@ -50,13 +50,23 @@
     var reporter = function(cov){
         cov = window._$blanket;
 
+        var sortedFileNames = [];
+
         var totals =[];
+
         for (var filename in cov) {
             if (cov.hasOwnProperty(filename)) {
-                var data = cov[filename];
-                var thisTotal= reportFile( data );
-                sendMessage("blanket:fileDone", thisTotal, filename);
+                sortedFileNames.push(filename);
             }
+        }
+
+        sortedFileNames.sort();
+
+        for (var i = 0; i < sortedFileNames.length; i++) {
+            var thisFile = sortedFileNames[i];
+            var data = cov[thisFile];
+            var thisTotal= reportFile( data );
+            sendMessage("blanket:fileDone", thisTotal, thisFile);
         }
 
         sendMessage("blanket:done");

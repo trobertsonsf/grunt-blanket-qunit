@@ -1,4 +1,4 @@
-// grunt-blanket-qunit
+// grunt-blanket-qunit 0.1.6
 //
 // Copyright (C) 2013 Dave Cadwallader, Model N, Inc.
 // Distributed under the MIT License
@@ -127,7 +127,12 @@ module.exports = function(grunt) {
 
         var result = pass ? "PASS" : "FAIL";
 
-        var percentDisplay = percent < 10 ? " " + Math.floor(percent) : "" + Math.floor(percent);
+        var percentDisplay = Math.floor(percent);
+        if (percentDisplay < 10) {
+            percentDisplay = "  " + percentDisplay;
+        } else if (percentDisplay < 100) {
+            percentDisplay = " " + percentDisplay;
+        }
 
         var msg = result + " [" + percentDisplay + "%] : " + filename + " (" + coveredLines + " / " + totalLines + ")";
 
