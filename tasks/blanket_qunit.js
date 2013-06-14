@@ -123,7 +123,7 @@ module.exports = function(grunt) {
         var totalLines = thisTotal[1];
 
         var percent = (coveredLines / totalLines) * 100;
-        var pass = (percent > coverageThreshold);
+        var pass = (percent >= coverageThreshold);
 
         var result = pass ? "PASS" : "FAIL";
 
@@ -231,7 +231,7 @@ module.exports = function(grunt) {
                                 // Otherwise, process next url.
                                 next();
                             }
-                        },
+                        }
                     });
                 },
                 // All tests have been run.

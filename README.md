@@ -94,6 +94,11 @@ In lieu of a formal styleguide, take care to maintain the existing coding style.
 
 ## Release History
 
+### 0.1.7
+*Released 14 June 2013*
+
+* Fixed Issue #2: Failure if coverage is exactly equal to threshold
+
 ### 0.1.6
 *Released 13 June 2013*
 
