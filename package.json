@@ -1,7 +1,7 @@
 {
   "name": "grunt-blanket-qunit",
   "description": "Headless Blanket.js code coverage and QUnit testing via PhantomJS",
-  "version": "0.1.7",
+  "version": "0.2.0",
   "homepage": "https://github.com/ModelN/grunt-blanket-qunit",
   "author": {
     "name": "Dave Cadwallader",

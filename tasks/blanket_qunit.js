@@ -1,4 +1,4 @@
-// grunt-blanket-qunit 0.1.6
+// grunt-blanket-qunit 0.2.0
 //
 // Copyright (C) 2013 Dave Cadwallader, Model N, Inc.
 // Distributed under the MIT License
@@ -14,14 +14,23 @@
 
 module.exports = function(grunt) {
 
+    var ok = true;
+
     // Nodejs libs.
     var path = require('path');
 
     // External lib.
     var phantomjs = require('grunt-contrib-qunit/node_modules/grunt-lib-phantomjs').init(grunt);
 
+    var totals = {
+        totalLines: 0,
+        coveredLines: 0,
+        moduleTotalStatements : {},
+        moduleTotalCoveredStatements : {}
+    };
+
     // Keep track of the last-started module, test and status.
-    var currentModule, currentTest, status, coverageThreshold;
+    var currentModule, currentTest, status, coverageThreshold, modulePattern, modulePatternRegex;
     // Keep track of the last-started test(s).
     var unfinished = {};
 
@@ -114,16 +123,9 @@ module.exports = function(grunt) {
 
     };
 
-    phantomjs.on('blanket:fileDone', function(thisTotal, filename) {
-        if (status.blanketPass === 0 && status.blanketFail === 0 ) {
-            grunt.log.writeln();
-        }
-
-        var coveredLines = thisTotal[0];
-        var totalLines = thisTotal[1];
-
-        var percent = (coveredLines / totalLines) * 100;
-        var pass = (percent >= coverageThreshold);
+    var printPassFailMessage = function(name, numCovered, numTotal, threshold, printPassing) {
+        var percent = (numCovered / numTotal) * 100;
+        var pass = (percent >= threshold);
 
         var result = pass ? "PASS" : "FAIL";
 
@@ -134,17 +136,44 @@ module.exports = function(grunt) {
             percentDisplay = " " + percentDisplay;
         }
 
-        var msg = result + " [" + percentDisplay + "%] : " + filename + " (" + coveredLines + " / " + totalLines + ")";
+        var msg = result + " [" + percentDisplay + "%] : " + name + " (" + numCovered + " / " + numTotal + ")";
 
         status.blanketTotal++;
         if (pass) {
             status.blanketPass++;
-            if (grunt.option('verbose')) {
+            if (printPassing || grunt.option('verbose')) {
                 grunt.log.writeln(msg.green);
             }
         } else {
+            ok = false;
             status.blanketFail++;
             grunt.log.writeln(msg.red);
+        }
+
+    };
+
+    phantomjs.on('blanket:fileDone', function(thisTotal, filename) {
+        if (status.blanketPass === 0 && status.blanketFail === 0 ) {
+            grunt.log.writeln();
+        }
+
+        var coveredLines = thisTotal[0];
+        var totalLines = thisTotal[1];
+
+        printPassFailMessage(filename, coveredLines, totalLines, coverageThreshold);
+
+        totals.totalLines += totalLines;
+        totals.coveredLines += coveredLines;
+
+        if (modulePatternRegex) {
+            var moduleName = filename.match(modulePatternRegex)[1];
+            if(!totals.moduleTotalStatements.hasOwnProperty(moduleName)) {
+                totals.moduleTotalStatements[moduleName] = 0;
+                totals.moduleTotalCoveredStatements[moduleName] = 0;
+            }
+
+            totals.moduleTotalStatements[moduleName] += totalLines;
+            totals.moduleTotalCoveredStatements[moduleName] += coveredLines;
         }
     });
 
@@ -209,6 +238,11 @@ module.exports = function(grunt) {
 
         coverageThreshold = grunt.option('threshold') || options.threshold;
 
+        modulePattern = grunt.option('modulePattern') || options.modulePattern;
+        if (modulePattern) {
+            modulePatternRegex = new RegExp(modulePattern);
+        }
+
         // Process each filepath in-order.
         grunt.util.async.forEachSeries(urls, function(url, next) {
                     var basename = path.basename(url);
@@ -236,23 +270,50 @@ module.exports = function(grunt) {
                 },
                 // All tests have been run.
                 function() {
-                    var ok = true;
 
                     grunt.log.writeln();
-                    grunt.log.write("Code Coverage Results: ");
-
-                    var thresholdMsg = "(" + coverageThreshold + "% minimum)";
-
+                    grunt.log.writeln("Per-File Coverage Results: (" + coverageThreshold + "% minimum)");
+                  
                     if (status.blanketFail > 0) {
-                        var failMsg = (status.blanketFail + "/" + status.blanketTotal + " files failed coverage " + thresholdMsg);
+                        var failMsg = "FAIL : " + (status.blanketFail + "/" + status.blanketTotal + " files failed coverage");
                         grunt.log.write(failMsg.red);
                         grunt.log.writeln();
                         ok = false;
                     } else {
-                        var blanketPassMsg = status.blanketPass + " files passed coverage " + thresholdMsg;
+                        var blanketPassMsg = "PASS : " + status.blanketPass + " files passed coverage ";
                         grunt.log.write(blanketPassMsg.green);
                         grunt.log.writeln();
                     }
+
+                    var moduleThreshold = grunt.option('moduleThreshold') || options.moduleThreshold;
+
+                    if (moduleThreshold) {
+
+                        grunt.log.writeln();
+
+                        grunt.log.writeln("Per-Module Coverage Results: (" + moduleThreshold + "% minimum)");
+
+                        if (modulePatternRegex) {
+                            for (var thisModuleName in totals.moduleTotalStatements) {
+                                if (totals.moduleTotalStatements.hasOwnProperty(thisModuleName)) {
+
+                                    var moduleTotalSt = totals.moduleTotalStatements[thisModuleName];
+                                    var moduleTotalCovSt = totals.moduleTotalCoveredStatements[thisModuleName];
+
+                                    printPassFailMessage(thisModuleName, moduleTotalCovSt, moduleTotalSt, moduleThreshold, /*printPassing*/true);
+                                }
+                            }
+                        }
+                    }
+
+                    var globalThreshold = grunt.option('globalThreshold') || options.globalThreshold;
+
+                    if (globalThreshold) {
+                        grunt.log.writeln();
+                        grunt.log.writeln("Global Coverage Results: (" + globalThreshold + "% minimum)");
+                        printPassFailMessage("global", totals.coveredLines, totals.totalLines, globalThreshold, /*printPassing*/true);
+                    }
+                    grunt.log.writeln();
 
                     grunt.log.write("Unit Test Results: ");
 
@@ -273,6 +334,8 @@ module.exports = function(grunt) {
                         grunt.log.write(passMsg.green);
                         grunt.log.writeln();
                     }
+
+                    grunt.log.writeln();
 
                     if (!ok) {
                         grunt.warn("Issues were found.");
