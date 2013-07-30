@@ -2,6 +2,11 @@
 
 > Headless Blanket.js code coverage and QUnit testing via PhantomJS
 
+## Introduction
+
+Check out the [blog post](http://geekdave.com/2013/07/20/code-coverage-enforcement-for-qunit-using-grunt-and-blanket/) 
+I wrote which provides a walkthrough of what this plugin can accomplish.
+
 ## Getting Started
 This plugin requires Grunt `~0.4.1`
 
