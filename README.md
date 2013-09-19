@@ -38,9 +38,11 @@ In your project's Gruntfile, add a section named `blanket_qunit` to the data obj
 ```js
 grunt.initConfig({
   blanket_qunit: {
-    options: {
+    all: {
+      options: {
 		urls: ['test.html?coverage=true&gruntReport'],
         threshold: 70
+      }
     }
   }
 })
