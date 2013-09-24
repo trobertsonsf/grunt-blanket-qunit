@@ -1,0 +1,49 @@
+1) Run "npm install"
+2) Run "grunt" --verbose
+
+You should see:
+
+	Running "blanket_qunit:all" (blanket_qunit) task
+	Verifying property blanket_qunit.all exists in config...OK
+	File: [no files]
+
+	Testing qunit-tests/Dummy.html?coverage=true&gruntReport
+	Dummy Test - m:isTrue...OK
+	Dummy Test - m:isFalse...OK
+	Dummy Test - m:add...OK
+
+	PASS [100%] : Dummy.js (9 / 9)
+
+	Per-File Coverage Results: (90% minimum)
+	PASS : 1 files passed coverage 
+
+	Unit Test Results: 
+	5 tests passed (50ms)
+
+	>> No issues found.
+
+	Done, without errors.
+
+3) Comment out the "add" test in qunit-tests/DummyTest.js
+
+4) Run step 2 again.  You should see:
+
+	Running "blanket_qunit:all" (blanket_qunit) task
+	Verifying property blanket_qunit.all exists in config...OK
+	File: [no files]
+
+	Testing qunit-tests/Dummy.html?coverage=true&gruntReport
+	Dummy Test - m:isTrue...OK
+	Dummy Test - m:isFalse...OK
+
+	FAIL [ 88%] : file:///Users/dave/dev/debug-blanket/qunit-tests/Dummy.js (8 / 9)
+
+	Per-File Coverage Results: (90% minimum)
+	FAIL : 1/1 files failed coverage
+
+	Unit Test Results: 
+	4 tests passed (47ms)
+
+	Warning: Issues were found. Use --force to continue.
+
+	Aborted due to warnings.

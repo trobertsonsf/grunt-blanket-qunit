@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+    <html><head>
+    <meta charset="utf-8">
+    <title>Dummy</title>
+  <link rel="stylesheet" href="../qunit/qunit.css">
+</head>
+<body>
+    <div id="qunit"></div>
+    <div id="qunit-fixture"></div>
+    <script src="../qunit/qunit.js"></script>
+<script type="text/javascript" src="../blanket.min.js"></script>
+<script>
+  if (location.href.match(/(\?|&)gruntReport($|&|=)/)) {
+    blanket.options("reporter", "../grunt-reporter.js");
+  }
+</script>
+
+<!-- Libraries that are tested -->
+<script type="text/javascript" src="Dummy.js" data-cover></script>
+
+<!-- Tests -->
+<script type="text/javascript" src="DummyTest.js"></script>
+
+</body>
+</html>
