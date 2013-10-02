@@ -65,7 +65,7 @@ You can enable this reporter in one of two ways:
 
 This method is suitable if your test runner html file is only used for headless testing.  Do not use this if you will be using this test runner html file in a browser, as it will spew a bunch of alerts at you (see the reporter implementation for the ugly `alert` hack used to communicate with phantomjs).
 
-2. As a conditional option evaulauted at runtime in your test runner html, like so:
+2. As a conditional option evaluated at runtime in your test runner html, like so:
 
 ```js
 <script>
