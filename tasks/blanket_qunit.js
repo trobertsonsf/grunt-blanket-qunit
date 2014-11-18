@@ -30,7 +30,7 @@ module.exports = function(grunt) {
     };
 
     // Keep track of the last-started module, test and status.
-    var currentModule, currentTest, status, coverageThreshold, modulePattern, modulePatternRegex;
+    var currentModule, currentTest, status, coverageThreshold, modulePattern, modulePatternRegex, verbose;
     // Keep track of the last-started test(s).
     var unfinished = {};
 
@@ -160,7 +160,7 @@ module.exports = function(grunt) {
         var coveredLines = thisTotal[0];
         var totalLines = thisTotal[1];
 
-        printPassFailMessage(filename, coveredLines, totalLines, coverageThreshold);
+        printPassFailMessage(filename, coveredLines, totalLines, coverageThreshold, verbose);
 
         totals.totalLines += totalLines;
         totals.coveredLines += coveredLines;
@@ -224,7 +224,8 @@ module.exports = function(grunt) {
             inject: asset('node_modules/grunt-contrib-qunit/phantomjs/bridge.js'),
             // Explicit non-file URLs to test.
             urls: [],
-            threshold: 20
+            threshold: 20,
+            verbose: false
         });
 
         // Combine any specified URLs with src files.
@@ -237,6 +238,8 @@ module.exports = function(grunt) {
         status = {failed: 0, passed: 0, total: 0, duration: 0, blanketTotal: 0, blanketPass: 0, blanketFail: 0};
 
         coverageThreshold = grunt.option('threshold') || options.threshold;
+
+        verbose = grunt.option('verbose') || options.verbose;
 
         modulePattern = grunt.option('modulePattern') || options.modulePattern;
         if (modulePattern) {
