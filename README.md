@@ -140,6 +140,14 @@ For example, if you wanted to test your files using a 90% global threshold, and 
 
 `grunt --globalThreshold=90`
 
+#### persist
+
+Determines if results should be written to a .csv file
+
+If true, each file that has coverage data will be written to a file [grunt root]/test-results/<file-name>.csv where <file-name> is the file's name (with path and .js removed).
+
+`grunt --persist=true`
+
 ## Contributing
 In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using [Grunt](http://gruntjs.com/).
 
