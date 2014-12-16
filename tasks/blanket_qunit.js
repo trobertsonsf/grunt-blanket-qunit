@@ -30,7 +30,7 @@ module.exports = function(grunt) {
     };
 
     // Keep track of the last-started module, test and status.
-    var currentModule, currentTest, status, coverageThreshold, modulePattern, modulePatternRegex, verbose;
+    var currentModule, currentTest, status, coverageThreshold, modulePattern, modulePatternRegex, verbose, persist;
     // Keep track of the last-started test(s).
     var unfinished = {};
 
@@ -96,7 +96,7 @@ module.exports = function(grunt) {
                 grunt.log.write('F'.red);
             }
         } else {
-            grunt.verbose.ok().or.write('.');
+            // grunt.verbose.ok().or.write('.');
         }
     });
 
@@ -123,11 +123,35 @@ module.exports = function(grunt) {
 
     };
 
+    var persistCoverageResults = function(name, numCovered, numTotal, threshold){
+        //make sure the user passed in the persist option
+        if(!persist){
+            return;
+        }
+        var fs = require('fs');
+        //remove the path, just get the file under tests name
+        var nameParts = name.split('/');
+        var resultFileName = nameParts[nameParts.length -1];
+
+        //remove the .js suffix
+        resultFileName = resultFileName.substring(0, resultFileName.length -3 );
+
+        var resultPath = 'test-results/'+ resultFileName +'.csv';
+        var resultLine = '' + name + ',' + numCovered + ',' +numTotal + ',' + threshold + '\n';
+        if(!fs.existsSync(resultPath)){
+            var header = 'name,numCovered,numTotal,threshold\n';
+            resultLine = header + resultLine;
+        }
+
+        fs.appendFileSync(resultPath, resultLine);
+    };
+
+
     var printPassFailMessage = function(name, numCovered, numTotal, threshold, printPassing) {
         var percent = (numCovered / numTotal) * 100;
         var pass = (percent >= threshold);
 
-        var result = pass ? "PASS" : "FAIL";
+        var result = pass ? "PASS" : "COVERAGE FAIL";
 
         var percentDisplay = Math.floor(percent);
         if (percentDisplay < 10) {
@@ -137,6 +161,8 @@ module.exports = function(grunt) {
         }
 
         var msg = result + " [" + percentDisplay + "%] : " + name + " (" + numCovered + " / " + numTotal + ")";
+
+        persistCoverageResults(name, numCovered, numTotal, threshold);
 
         status.blanketTotal++;
         if (pass) {
@@ -225,7 +251,8 @@ module.exports = function(grunt) {
             // Explicit non-file URLs to test.
             urls: [],
             threshold: 20,
-            verbose: false
+            verbose: false,
+            persist: false
         });
 
         // Combine any specified URLs with src files.
@@ -241,6 +268,8 @@ module.exports = function(grunt) {
 
         verbose = grunt.option('verbose') || options.verbose;
 
+        persist = grunt.option('persist') || options.persist;
+
         modulePattern = grunt.option('modulePattern') || options.modulePattern;
         if (modulePattern) {
             modulePatternRegex = new RegExp(modulePattern);
@@ -249,7 +278,7 @@ module.exports = function(grunt) {
         // Process each filepath in-order.
         grunt.util.async.forEachSeries(urls, function(url, next) {
                     var basename = path.basename(url);
-                    grunt.verbose.subhead('Testing ' + url).or.write('Testing ' + url);
+                    grunt.verbose.subhead('\nTesting ' + url).or.write('Testing ' + url + '\n');
 
                     // Reset current module.
                     currentModule = null;
@@ -278,12 +307,12 @@ module.exports = function(grunt) {
                     grunt.log.writeln("Per-File Coverage Results: (" + coverageThreshold + "% minimum)");
                   
                     if (status.blanketFail > 0) {
-                        var failMsg = "FAIL : " + (status.blanketFail + "/" + status.blanketTotal + " files failed coverage");
+                        var failMsg = "FAIL : " + (status.blanketFail + "/" + status.blanketTotal + " files failed coverage\n");
                         grunt.log.write(failMsg.red);
                         grunt.log.writeln();
                         ok = false;
                     } else {
-                        var blanketPassMsg = "PASS : " + status.blanketPass + " files passed coverage ";
+                        var blanketPassMsg = "PASS : " + status.blanketPass + " files passed coverage \n";
                         grunt.log.write(blanketPassMsg.green);
                         grunt.log.writeln();
                     }
