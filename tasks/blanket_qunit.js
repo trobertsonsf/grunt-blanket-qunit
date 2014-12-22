@@ -34,6 +34,12 @@ module.exports = function(grunt) {
     // Keep track of the last-started test(s).
     var unfinished = {};
 
+
+    var consoleOpt = grunt.option('console');
+    if(consoleOpt){
+        consoleOpt = true;
+    }    
+
     // Get an asset file, local to the root of the project.
     var asset = path.join.bind(null, __dirname, '..');
 
@@ -237,12 +243,15 @@ module.exports = function(grunt) {
         grunt.log.writeln();
         grunt.warn('PhantomJS timed out, possibly due to a missing QUnit start() call.');
     });
-
+    
     // Pass-through console.log statements.
-    phantomjs.on('console', console.log.bind(console));
-
+    if(consoleOpt === true) {
+      phantomjs.on('console', console.log.bind(console));
+    }
+    
     grunt.registerMultiTask('blanket_qunit', 'Run BlanketJS coverage and QUnit unit tests in a headless PhantomJS instance.', function() {
         // Merge task-specific and/or target-specific options with these defaults.
+        var now = new Date();
         var options = this.options({
             // Default PhantomJS timeout.
             timeout: 5000,
@@ -252,7 +261,9 @@ module.exports = function(grunt) {
             urls: [],
             threshold: 20,
             verbose: false,
-            persist: false
+            persist: false,                        
+            // persistDir : 'test-results/',
+            // persistFile : ''+ now.getMonth() + '-' + now.getDate() + '-' + now.getYear()
         });
 
         // Combine any specified URLs with src files.
@@ -268,7 +279,7 @@ module.exports = function(grunt) {
 
         verbose = grunt.option('verbose') || options.verbose;
 
-        persist = grunt.option('persist') || options.persist;
+        persist = grunt.option('persist') || options.persist;    
 
         modulePattern = grunt.option('modulePattern') || options.modulePattern;
         if (modulePattern) {
