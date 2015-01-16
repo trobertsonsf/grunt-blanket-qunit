@@ -8,11 +8,11 @@
 //
 // Documentation and full license available at:
 // https://github.com/ModelN/grunt-blanket-qunit
-// 
+//
 (function (){
     "use strict";
 
-    // this is an ugly hack, but it's the official way of communicating between 
+    // this is an ugly hack, but it's the official way of communicating between
     // the parent phantomjs and the inner grunt-contrib-qunit library...
     var sendMessage = function sendMessage() {
         var args = [].slice.call(arguments);
@@ -66,7 +66,9 @@
             var thisFile = sortedFileNames[i];
             var data = cov[thisFile];
             var thisTotal= reportFile( data );
-            sendMessage("blanket:fileDone", thisTotal, thisFile);
+            // sendMessage("blanket:fileDone", thisTotal, thisFile);
+            sendMessage("blanket:fileDone", thisTotal, thisFile, data);
+
         }
 
         sendMessage("blanket:done");

@@ -34,6 +34,7 @@ module.exports = function(grunt) {
     // Keep track of the last-started test(s).
     var unfinished = {};
 
+    var sonarResults = {};
 
     var consoleOpt = grunt.option('console');
     if(consoleOpt){
@@ -184,7 +185,43 @@ module.exports = function(grunt) {
 
     };
 
-    phantomjs.on('blanket:fileDone', function(thisTotal, filename) {
+    var generateSonarReport = function(){
+        var keys = Object.getOwnPropertyNames(sonarResults);
+        var outputFile = '/tmp/coverage.xml';
+        var fs = require('fs');
+        fs.writeFileSync(outputFile, '<coverage version="1">\n');
+        keys.forEach(function(k){
+            var file = k;
+            var data = sonarResults[k];
+            fs.appendFileSync(outputFile, '\t<file path="' + file + '">\n');
+
+            data.forEach(function(line, num){
+                num++;
+                var passFail = data[num] === 0 ? 'false' : 'true';
+                var l = '\t\t<lineToCover lineNumber="' + num + '" covered="' + passFail + '"/>\n';
+                fs.appendFileSync(outputFile, l);
+            });
+            fs.appendFileSync(outputFile, '\t</file>\n');
+            // if (data[num] === 0) {
+            //     ret.misses++;
+            //     ret.sloc++;
+            // } else if (data[num] !== undefined) {
+            //     ret.hits++;
+            //     ret.sloc++;
+            // }
+        });
+        fs.appendFileSync(outputFile, '</coverage>');
+
+    };
+
+    var addSonarRecord = function(fileName, data){
+        sonarResults[fileName] =  data;
+    };
+
+    phantomjs.on('blanket:fileDone', function(thisTotal, filename, data) {
+
+        addSonarRecord(filename, data);
+
         if (status.blanketPass === 0 && status.blanketFail === 0 ) {
             grunt.log.writeln();
         }
@@ -313,7 +350,7 @@ module.exports = function(grunt) {
                 },
                 // All tests have been run.
                 function() {
-
+                    generateSonarReport();
                     grunt.log.writeln();
                     grunt.log.writeln("Per-File Coverage Results: (" + coverageThreshold + "% minimum)");
                   
