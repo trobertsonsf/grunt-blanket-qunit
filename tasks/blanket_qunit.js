@@ -185,7 +185,7 @@ module.exports = function(grunt) {
 
     };
 
-    var generateSonarReport = function(){
+    var generateSonarReport2 = function(){
         var keys = Object.getOwnPropertyNames(sonarResults);
         var outputFile = '/tmp/coverage.xml';
         var fs = require('fs');
@@ -202,15 +202,44 @@ module.exports = function(grunt) {
                 fs.appendFileSync(outputFile, l);
             });
             fs.appendFileSync(outputFile, '\t</file>\n');
-            // if (data[num] === 0) {
-            //     ret.misses++;
-            //     ret.sloc++;
-            // } else if (data[num] !== undefined) {
-            //     ret.hits++;
-            //     ret.sloc++;
-            // }
         });
         fs.appendFileSync(outputFile, '</coverage>');
+
+    };
+
+    /**
+    str += 'SF:' + filename + '\n';
+
+        data.source.forEach(function(line, num) {
+          // increase the line number, as JS arrays are zero-based
+          num++;
+
+          if (data[num] !== undefined) {
+            str += 'DA:' + num + ',' + data[num] + '\n';
+          }
+       });
+
+       str += 'end_of_record\n';
+    **/
+
+    var generateSonarReport = function(){
+        var keys = Object.getOwnPropertyNames(sonarResults);
+        var outputFile = '/tmp/coverage.lcov';
+        var fs = require('fs');
+        fs.writeFileSync(outputFile, '');
+        keys.forEach(function(k){
+            var file = k;
+            var data = sonarResults[k];
+            fs.appendFileSync(outputFile, 'SF:'+file+'\n');
+
+            data.forEach(function(line, num){
+                num++;
+                if(data[num] !== undefined && data[num] !== null && data[num] !== '' ){
+                    fs.appendFileSync(outputFile, 'DA:' + num + ',' + data[num] + '\n');
+                }
+            });
+            fs.appendFileSync(outputFile, 'end_of_record\n');
+        });
 
     };
 
