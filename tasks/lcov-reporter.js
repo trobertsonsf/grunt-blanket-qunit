@@ -1,6 +1,4 @@
-
-
-
+'use strict';
 
 var f = function(){
 	var sonarResults = {};
@@ -10,7 +8,7 @@ var f = function(){
 			sonarResults[fileName] =  data;
 		},
 		saveReport : function(outputDir, stripFilePrefix){
-			stripFilePrefix = /^\/jvmc\//; //TODO acutally use the parameters
+			stripFilePrefix = /^\/jmvc\//; //TODO acutally use the parameters
 	        var keys = Object.getOwnPropertyNames(sonarResults);
     	    var outputFile = '/tmp/coverage.lcov'; //TODO acutally use the parameters
         	var fs = require('fs');
@@ -29,7 +27,7 @@ var f = function(){
 	            fs.appendFileSync(outputFile, 'end_of_record\n');
 	        });
 		}
-	}
-}
-
-module.exports = f;
+	};
+};
+ 
+module.exports = f();
