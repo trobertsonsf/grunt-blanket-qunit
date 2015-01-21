@@ -21,6 +21,7 @@ module.exports = function(grunt) {
 
     // External lib.
     var phantomjs = require('grunt-contrib-qunit/node_modules/grunt-lib-phantomjs').init(grunt);
+    var lcovReporter = require('./lcov-reporter');
 
     var totals = {
         totalLines: 0,
@@ -249,7 +250,8 @@ module.exports = function(grunt) {
 
     phantomjs.on('blanket:fileDone', function(thisTotal, filename, data) {
 
-        addSonarRecord(filename, data);
+        lcovReporter.addResult(filename, data);
+        // addSonarRecord(filename, data);
 
         if (status.blanketPass === 0 && status.blanketFail === 0 ) {
             grunt.log.writeln();
@@ -379,7 +381,9 @@ module.exports = function(grunt) {
                 },
                 // All tests have been run.
                 function() {
-                    generateSonarReport();
+                    lcovReporter.saveReport();
+                    // generateSonarReport();
+
                     grunt.log.writeln();
                     grunt.log.writeln("Per-File Coverage Results: (" + coverageThreshold + "% minimum)");
                   
