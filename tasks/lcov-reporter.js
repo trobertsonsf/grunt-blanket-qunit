@@ -8,7 +8,9 @@ var f = function(){
 			sonarResults[fileName] =  data;
 		},
 		saveReport : function(outputDir, stripFilePrefix){
-			stripFilePrefix = /^\/jmvc\//; //TODO acutally use the parameters
+			if(stripFilePrefix && stripFilePrefix.length > 0){
+				stripFilePrefix = new RegExp(stripFilePrefix);
+			}
 	        var keys = Object.getOwnPropertyNames(sonarResults);
     	    var outputFile = outputDir +'/coverage.lcov';
         	var fs = require('fs');
@@ -29,5 +31,5 @@ var f = function(){
 		}
 	};
 };
- 
+
 module.exports = f();
