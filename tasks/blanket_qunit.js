@@ -21,6 +21,7 @@ module.exports = function(grunt) {
 
     // External lib.
     var phantomjs = require('grunt-contrib-qunit/node_modules/grunt-lib-phantomjs').init(grunt);
+
     var lcovReporter = require('./lcov-reporter');
 
     var totals = {
@@ -31,16 +32,16 @@ module.exports = function(grunt) {
     };
 
     // Keep track of the last-started module, test and status.
-    var currentModule, currentTest, status, coverageThreshold, modulePattern, modulePatternRegex, verbose, persist;
+    var currentModule, currentTest, status, coverageThreshold, modulePattern, modulePatternRegex, verbose, lcovOpt, stripFilePrefix;
     // Keep track of the last-started test(s).
     var unfinished = {};
 
-    var sonarResults = {};
+    // var sonarResults = {};
 
     var consoleOpt = grunt.option('console');
     if(consoleOpt){
         consoleOpt = true;
-    }    
+    }
 
     // Get an asset file, local to the root of the project.
     var asset = path.join.bind(null, __dirname, '..');
@@ -108,69 +109,20 @@ module.exports = function(grunt) {
         }
     });
 
-    var reportFile = function( data,options) {
-        var ret = {
-            coverage: 0,
-            hits: 0,
-            misses: 0,
-            sloc: 0
-        };
-        data.source.forEach(function(line, num){
-            num++;
-            if (data[num] === 0) {
-                ret.misses++;
-                ret.sloc++;
-            } else if (data[num] !== undefined) {
-                ret.hits++;
-                ret.sloc++;
-            }
-        });
-        ret.coverage = ret.hits / ret.sloc * 100;
-
-        return [ret.hits,ret.sloc];
-
-    };
-
-    var persistCoverageResults = function(name, numCovered, numTotal, threshold){
-        //make sure the user passed in the persist option
-        if(!persist){
-            return;
-        }
-        var fs = require('fs');
-        //remove the path, just get the file under tests name
-        var nameParts = name.split('/');
-        var resultFileName = nameParts[nameParts.length -1];
-
-        //remove the .js suffix
-        resultFileName = resultFileName.substring(0, resultFileName.length -3 );
-
-        var resultPath = 'test-results/'+ resultFileName +'.csv';
-        var resultLine = '' + name + ',' + numCovered + ',' +numTotal + ',' + threshold + '\n';
-        if(!fs.existsSync(resultPath)){
-            var header = 'name,numCovered,numTotal,threshold\n';
-            resultLine = header + resultLine;
-        }
-
-        fs.appendFileSync(resultPath, resultLine);
-    };
-
-
     var printPassFailMessage = function(name, numCovered, numTotal, threshold, printPassing) {
         var percent = (numCovered / numTotal) * 100;
         var pass = (percent >= threshold);
 
-        var result = pass ? "PASS" : "COVERAGE FAIL";
+        var result = pass ? 'PASS' : 'COVERAGE FAIL';
 
         var percentDisplay = Math.floor(percent);
         if (percentDisplay < 10) {
-            percentDisplay = "  " + percentDisplay;
+            percentDisplay = '  ' + percentDisplay;
         } else if (percentDisplay < 100) {
-            percentDisplay = " " + percentDisplay;
+            percentDisplay = ' ' + percentDisplay;
         }
 
-        var msg = result + " [" + percentDisplay + "%] : " + name + " (" + numCovered + " / " + numTotal + ")";
-
-        persistCoverageResults(name, numCovered, numTotal, threshold);
+        var msg = result + ' [' + percentDisplay + '%] : ' + name + ' (' + numCovered + ' / ' + numTotal + ')';
 
         status.blanketTotal++;
         if (pass) {
@@ -186,71 +138,11 @@ module.exports = function(grunt) {
 
     };
 
-    var generateSonarReport2 = function(){
-        var keys = Object.getOwnPropertyNames(sonarResults);
-        var outputFile = '/tmp/coverage.xml';
-        var fs = require('fs');
-        fs.writeFileSync(outputFile, '<coverage version="1">\n');
-        keys.forEach(function(k){
-            var file = k;
-            var data = sonarResults[k];
-            fs.appendFileSync(outputFile, '\t<file path="' + file + '">\n');
-
-            data.forEach(function(line, num){
-                num++;
-                var passFail = data[num] === 0 ? 'false' : 'true';
-                var l = '\t\t<lineToCover lineNumber="' + num + '" covered="' + passFail + '"/>\n';
-                fs.appendFileSync(outputFile, l);
-            });
-            fs.appendFileSync(outputFile, '\t</file>\n');
-        });
-        fs.appendFileSync(outputFile, '</coverage>');
-
-    };
-
-    /**
-    str += 'SF:' + filename + '\n';
-
-        data.source.forEach(function(line, num) {
-          // increase the line number, as JS arrays are zero-based
-          num++;
-
-          if (data[num] !== undefined) {
-            str += 'DA:' + num + ',' + data[num] + '\n';
-          }
-       });
-
-       str += 'end_of_record\n';
-    **/
-
-    var generateSonarReport = function(){
-        var keys = Object.getOwnPropertyNames(sonarResults);
-        var outputFile = '/tmp/coverage.lcov';
-        var fs = require('fs');
-        fs.writeFileSync(outputFile, '');
-        keys.forEach(function(k){
-            var file = k;
-            var data = sonarResults[k];
-            fs.appendFileSync(outputFile, 'SF:'+file+'\n');
-
-            data.forEach(function(line, num){
-                num++;
-                if(data[num] !== undefined && data[num] !== null && data[num] !== '' ){
-                    fs.appendFileSync(outputFile, 'DA:' + num + ',' + data[num] + '\n');
-                }
-            });
-            fs.appendFileSync(outputFile, 'end_of_record\n');
-        });
-
-    };
-
-    var addSonarRecord = function(fileName, data){
-        sonarResults[fileName] =  data;
-    };
-
     phantomjs.on('blanket:fileDone', function(thisTotal, filename, data) {
+        if(lcovOpt){
+            lcovReporter.addResult(filename, data);
+        }
 
-        lcovReporter.addResult(filename, data);
         // addSonarRecord(filename, data);
 
         if (status.blanketPass === 0 && status.blanketFail === 0 ) {
@@ -311,15 +203,14 @@ module.exports = function(grunt) {
         grunt.log.writeln();
         grunt.warn('PhantomJS timed out, possibly due to a missing QUnit start() call.');
     });
-    
+
     // Pass-through console.log statements.
     if(consoleOpt === true) {
       phantomjs.on('console', console.log.bind(console));
     }
-    
+
     grunt.registerMultiTask('blanket_qunit', 'Run BlanketJS coverage and QUnit unit tests in a headless PhantomJS instance.', function() {
         // Merge task-specific and/or target-specific options with these defaults.
-        var now = new Date();
         var options = this.options({
             // Default PhantomJS timeout.
             timeout: 5000,
@@ -329,11 +220,44 @@ module.exports = function(grunt) {
             urls: [],
             threshold: 20,
             verbose: false,
-            persist: false,                        
-            // persistDir : 'test-results/',
-            // persistFile : ''+ now.getMonth() + '-' + now.getDate() + '-' + now.getYear()
+            lcov : true,
+            //TODO This should use the temporary module, or be handled in Grunt.
+            lcovOutputDir: '/tmp',
+            stripFilePrefix : ''
         });
 
+
+        grunt.verbose.write('lcov cmd line option',grunt.option('lcov') );
+        grunt.verbose.write('lcov option',options.lcov );
+        grunt.verbose.write('lcovDir cmd line option',grunt.option('lcov-output-dir') );
+        grunt.verbose.write('lcovDir option',options.lcovOutputDir );
+
+        lcovOpt = options.lcov;
+        var lcovOptCmdLine  = grunt.option('lcov');
+        if(lcovOptCmdLine === false){
+            lcovOpt = false;
+        }
+
+        var lcovOutputDir = options.lcovOutputDir;
+
+        if(lcovOpt){
+            lcovOpt = true;
+            var lcovOutputDirOpt = grunt.option('lcov-output-dir');
+            if(lcovOutputDirOpt && lcovOutputDirOpt.length > 0){
+                //if the user specified an output dir, use it.
+                lcovOutputDir = lcovOutputDirOpt;
+            }
+        }
+
+        stripFilePrefix = options.stripFilePrefix;
+        var stripFilePrefixCmdLineOpt = grunt.option('strip-file-prefix');
+        if(stripFilePrefixCmdLineOpt && stripFilePrefixCmdLineOpt.length > 0){
+            stripFilePrefix = stripFilePrefixCmdLineOpt;
+        }
+
+        grunt.verbose.write('using lcov', lcovOpt);
+        grunt.verbose.write('using lcovOutputDir', lcovOutputDir);
+        grunt.verbose.write('using stripFilePrefix', stripFilePrefix);
         // Combine any specified URLs with src files.
         var urls = options.urls.concat(this.filesSrc);
 
@@ -347,8 +271,6 @@ module.exports = function(grunt) {
 
         verbose = grunt.option('verbose') || options.verbose;
 
-        persist = grunt.option('persist') || options.persist;    
-
         modulePattern = grunt.option('modulePattern') || options.modulePattern;
         if (modulePattern) {
             modulePatternRegex = new RegExp(modulePattern);
@@ -356,7 +278,6 @@ module.exports = function(grunt) {
 
         // Process each filepath in-order.
         grunt.util.async.forEachSeries(urls, function(url, next) {
-                    var basename = path.basename(url);
                     grunt.verbose.subhead('\nTesting ' + url).or.write('Testing ' + url + '\n');
 
                     // Reset current module.
@@ -381,19 +302,21 @@ module.exports = function(grunt) {
                 },
                 // All tests have been run.
                 function() {
-                    lcovReporter.saveReport();
+                    if(lcovOpt){
+                        lcovReporter.saveReport(lcovOutputDir);
+                    }
                     // generateSonarReport();
 
                     grunt.log.writeln();
-                    grunt.log.writeln("Per-File Coverage Results: (" + coverageThreshold + "% minimum)");
-                  
+                    grunt.log.writeln('Per-File Coverage Results: (' + coverageThreshold + '% minimum)');
+
                     if (status.blanketFail > 0) {
-                        var failMsg = "FAIL : " + (status.blanketFail + "/" + status.blanketTotal + " files failed coverage\n");
+                        var failMsg = 'FAIL : ' + (status.blanketFail + '/' + status.blanketTotal + ' files failed coverage\n');
                         grunt.log.write(failMsg.red);
                         grunt.log.writeln();
                         ok = false;
                     } else {
-                        var blanketPassMsg = "PASS : " + status.blanketPass + " files passed coverage \n";
+                        var blanketPassMsg = 'PASS : ' + status.blanketPass + ' files passed coverage \n';
                         grunt.log.write(blanketPassMsg.green);
                         grunt.log.writeln();
                     }
@@ -404,7 +327,7 @@ module.exports = function(grunt) {
 
                         grunt.log.writeln();
 
-                        grunt.log.writeln("Per-Module Coverage Results: (" + moduleThreshold + "% minimum)");
+                        grunt.log.writeln('Per-Module Coverage Results: (' + moduleThreshold + '% minimum)');
 
                         if (modulePatternRegex) {
                             for (var thisModuleName in totals.moduleTotalStatements) {
@@ -423,12 +346,12 @@ module.exports = function(grunt) {
 
                     if (globalThreshold) {
                         grunt.log.writeln();
-                        grunt.log.writeln("Global Coverage Results: (" + globalThreshold + "% minimum)");
-                        printPassFailMessage("global", totals.coveredLines, totals.totalLines, globalThreshold, /*printPassing*/true);
+                        grunt.log.writeln('Global Coverage Results: (' + globalThreshold + '% minimum)');
+                        printPassFailMessage('global', totals.coveredLines, totals.totalLines, globalThreshold, /*printPassing*/true);
                     }
                     grunt.log.writeln();
 
-                    grunt.log.write("Unit Test Results: ");
+                    grunt.log.write('Unit Test Results: ');
 
                     if (status.failed > 0) {
                         var failMsg2 = (status.failed + '/' + status.total + ' assertions failed (' +
@@ -451,9 +374,9 @@ module.exports = function(grunt) {
                     grunt.log.writeln();
 
                     if (!ok) {
-                        grunt.warn("Issues were found.");
+                        grunt.warn('Issues were found.');
                     } else {
-                        grunt.log.ok("No issues found.");
+                        grunt.log.ok('No issues found.');
                     }
 
                     done();

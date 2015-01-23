@@ -10,7 +10,7 @@ var f = function(){
 		saveReport : function(outputDir, stripFilePrefix){
 			stripFilePrefix = /^\/jmvc\//; //TODO acutally use the parameters
 	        var keys = Object.getOwnPropertyNames(sonarResults);
-    	    var outputFile = '/tmp/coverage.lcov'; //TODO acutally use the parameters
+    	    var outputFile = outputDir +'/coverage.lcov';
         	var fs = require('fs');
         	fs.writeFileSync(outputFile, '');
         	keys.forEach(function(k){
