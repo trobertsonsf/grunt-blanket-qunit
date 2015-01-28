@@ -303,7 +303,7 @@ module.exports = function(grunt) {
                 // All tests have been run.
                 function() {
                     if(lcovOpt){
-                        lcovReporter.saveReport(lcovOutputDir);
+                        lcovReporter.saveReport(lcovOutputDir, stripFilePrefix);
                     }
                     // generateSonarReport();
 
