@@ -30,6 +30,7 @@ module.exports = function(grunt) {
         moduleTotalStatements : {},
         moduleTotalCoveredStatements : {}
     };
+    var lastEvents = [];
 
     // Keep track of the last-started module, test and status.
     var currentModule, currentTest, status, coverageThreshold, modulePattern, modulePatternRegex, verbose, lcovOpt, stripFilePrefix;
@@ -42,6 +43,13 @@ module.exports = function(grunt) {
     if(consoleOpt){
         consoleOpt = true;
     }
+
+    var pushEvent = function(event) {
+    	if(lastEvents.length >= 10){
+    		lastEvents = lastEvents.slice(1); //remove the first
+    	}
+    	lastEvents.push(event) // add to end
+    };
 
     // Get an asset file, local to the root of the project.
     var asset = path.join.bind(null, __dirname, '..');
@@ -188,6 +196,7 @@ module.exports = function(grunt) {
     phantomjs.on('qunit.*', function() {
         var args = [this.event].concat(grunt.util.toArray(arguments));
         grunt.event.emit.apply(grunt.event, args);
+        pushEvent(args);
     });
 
     // Built-in error handlers.
@@ -201,7 +210,15 @@ module.exports = function(grunt) {
     phantomjs.on('fail.timeout', function() {
         phantomjs.halt();
         grunt.log.writeln();
+        grunt.log.writeln('Last captured qunit events: ');
+        //it's a stack, loop backwords
+        for (var i = lastEvents.length - 1; i >= 0; i--) {
+        	grunt.log.writeln(lastEvents[i]);
+        };
+	grunt.log.writeln('Last Module: ' + currentModule);
+	grunt.log.writeln('Last Test: ' + currentTest);
         grunt.warn('PhantomJS timed out, possibly due to a missing QUnit start() call.');
+
     });
 
     // Pass-through console.log statements.
