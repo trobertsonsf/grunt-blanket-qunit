@@ -213,9 +213,10 @@ module.exports = function(grunt) {
         grunt.log.writeln('Last captured qunit events: ');
         //it's a stack, loop backwords
         for (var i = lastEvents.length - 1; i >= 0; i--) {
-
         	grunt.log.writeln(lastEvents[i]);
         };
+	grunt.log.writeln('Last Module: ' + currentModule);
+	grunt.log.writeln('Last Test: ' + currentTest);
         grunt.warn('PhantomJS timed out, possibly due to a missing QUnit start() call.');
 
     });
