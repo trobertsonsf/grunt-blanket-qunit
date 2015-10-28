@@ -31,6 +31,7 @@ module.exports = function(grunt) {
         moduleTotalCoveredStatements : {}
     };
     var lastEvents = [];
+    var startedTests = {};
 
     // Keep track of the last-started module, test and status.
     var currentModule, currentTest, status, coverageThreshold, modulePattern, modulePatternRegex, verbose, lcovOpt, stripFilePrefix;
@@ -45,8 +46,21 @@ module.exports = function(grunt) {
     }
 
     var pushEvent = function(event) {
-    	if(lastEvents.length >= 10){
+    	if(lastEvents.length >= 100){
     		lastEvents = lastEvents.slice(1); //remove the first
+    	}
+
+    	if(event.length){
+    		var testname ='';
+    		if(event[0] === 'qunit.testStart'){
+    			testname = event[1];
+    			startedTests[testname] = 'STARTED';
+    		}else if(event[0] === 'qunit.testDone') {
+    			testname = event[1];
+    			if(startedTests[testname]){
+    				delete startedTests[testname];
+    			}
+    		}
     	}
     	lastEvents.push(event) // add to end
     };
@@ -217,7 +231,16 @@ module.exports = function(grunt) {
         };
 	grunt.log.writeln('Last Module: ' + currentModule);
 	grunt.log.writeln('Last Test: ' + currentTest);
-        grunt.warn('PhantomJS timed out, possibly due to a missing QUnit start() call.');
+	grunt.log.writeln('');
+
+	if(JSON && JSON.stringify) {
+		grunt.log.writeln('Not Finished Tests: ' + JSON.stringify(startedTests, null, '  '));
+	}
+
+	grunt.log.writeln('');
+	grunt.log.writeln('');
+
+    grunt.warn('PhantomJS timed out, possibly due to a missing QUnit start() call.');
 
     });
 
@@ -401,3 +424,4 @@ module.exports = function(grunt) {
     });
 
 };
+
